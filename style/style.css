@@ -35,7 +35,7 @@ h3 {
 }
 p,a {
 	font-family: Futura, "Trebuchet MS", Arial, sans-serif;
-	font-size: 20px;
+	font-size: 2vw;
 	font-style: normal;
 	font-variant: normal;
 	font-weight: 400;
@@ -75,12 +75,12 @@ li {
 }
 
 #content-centred{
-    height: 200px;
-    width: 700px;
+    height: 60%;
+    width: 60%;
 
     position: fixed;
     top: 40%;
-    left: 41%;
+    left: 50%;
     margin-top: -200px;
     margin-left: -200px;
         animation: fadein 2s;
