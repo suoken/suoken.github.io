@@ -75,53 +75,66 @@ li {
 }
 
 #project-0 {
-    display: inline-block;
-    width:160px;
-    height:160px;
-    border: 1px solid red;
+    width: 600px; 
+    position: relative;
+    margin:0 auto;
+    line-height: 1.4em;
+    top: 40%;
+    margin-top: -200px;
 }
 
 #project-1 {
-    display: inline-block;
-    width:160px;
-    height:160px;
-    border: 1px solid green;
+    width: 600px; 
+    position: relative;
+    margin:0 auto;
+    line-height: 1.4em;
+    top: 40%;
+    margin-top: -200px;
 }
 
 #project-2 {
-    display: inline-block;
-    width:160px;
-    height:160px;
-    border: 1px solid green;
+     width: 600px; 
+    position: relative;
+    margin:0 auto;
+    line-height: 1.4em;
+    top: 40%;
+    margin-top: -200px;
 }
 
 #project-3 {
-    display: inline-block;
-    width:160px;
-    height:160px;
-    border: 1px solid green;
+    width: 600px; 
+    position: relative;
+    margin:0 auto;
+    line-height: 1.4em;
+    top: 40%;
+    margin-top: -200px;
 }
 
 #project-4 {
-    display: inline-block;
-    width:160px;
-    height:160px;
-    border: 1px solid green;
+    width: 600px; 
+    position: relative;
+    margin:0 auto;
+    line-height: 1.4em;
+    top: 40%;
+    margin-top: -200px;
 }
 
 #project-5 {
-    display: inline-block;
-    width:160px;
-    height:160px;
-    border: 1px solid green;
+    width: 600px; 
+    position: relative;
+    margin:0 auto;
+    line-height: 1.4em;
+    top: 40%;
+    margin-top: -200px;
 }
 
 #project-6 {
-    display: inline-block;
-    width:160px;
-    height:160px;
-    border: 1px solid green;
-}
+    width: 600px; 
+    position: relative;
+    margin:0 auto;
+    line-height: 1.4em;
+    top: 40%;
+    margin-top: -200px;
 
 .project-container {
     position: relative;
@@ -162,15 +175,23 @@ li {
 }
 
 #content-centred{
-    height: 400px;
-    width: 600px;
+/*    height: 400px;
+    width: 600px;*/
+
+    width: 600px; 
+    position: relative;
+    margin:0 auto;
+    line-height: 1.4em;
+    top: 40%;
+    margin-top: -200px;
 
     /* position: fixed; */
+/*    display: block;
     position: relative;
     top: 40%;
     left: 45%;
     margin-top: -200px;
-    margin-left: -200px;
+    margin-left: -200px;*/
         animation: fadein 2s;
     -moz-animation: fadein 2s; /* Firefox */
     -webkit-animation: fadein 2s; /* Safari and Chrome */
@@ -178,16 +199,23 @@ li {
 }
 
 #content-centred-projects{ 
-    height: 400px;
+/*    height: 400px;
     width: 600px;
-    margin-bottom: 50cm; 
+    margin-bottom: 50cm; */
+
+    width: 600px; 
+    position: relative;
+    margin:0 auto;
+    line-height: 1.4em;
+    top: 40%;
+    margin-top: -200px;
 
     /* position: fixed; */
-    position: relative;
+/*    position: relative;
     top: 40%;
     left: 45%;
     margin-top: -200px;
-    margin-left: -200px;
+    margin-left: -200px;*/
         animation: fadein 2s;
     -moz-animation: fadein 2s; /* Firefox */
     -webkit-animation: fadein 2s; /* Safari and Chrome */
@@ -226,6 +254,11 @@ li {
         opacity: 1;
     }
 }
+
+@media only screen and (max-width: 479px){
+    #content-centred { width: 90%; }
+}
+
 
 
 
