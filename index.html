@@ -1,105 +1,172 @@
-<!DOCTYPE HTML>
-<!--
-	Strata by HTML5 UP
-	html5up.net | @ajlkn
-	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
--->
-<html>
-	<head>
-		<title>Ken Suong</title>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
-		<link rel="stylesheet" href="assets/css/main.css" />
-		<link rel="SHORTCUT ICON" href="images/bumper-plates.png" type="image/x-icon"> 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ken Suong — Moved to kensuong.com</title>
+  <meta name="description" content="Ken Suong's site has moved to kensuong.com.">
+  <link rel="canonical" href="https://kensuong.com/">
+  <meta name="robots" content="noindex, follow">
+  <!-- Fallback for visitors without JavaScript -->
+  <meta http-equiv="refresh" content="4; url=https://kensuong.com/">
+  <style>
+    :root {
+      --bg: #f6f3ee;
+      --ink: #1c1b19;
+      --muted: #77716a;
+      --line: #e2dcd2;
+      --accent: #c2562f;
+      --card: #fffdf9;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #141413;
+        --ink: #f1ede6;
+        --muted: #9a948b;
+        --line: #2b2a27;
+        --accent: #e07a52;
+        --card: #1b1a18;
+      }
+    }
 
-	</head>
-	<body class="is-preload">
+    * { box-sizing: border-box; margin: 0; }
 
-		<!-- Header -->
-			<header id="header">
-				<div class="inner">
-					<a href="#" class="image avatar"><img src="images/me.jpg" alt="" /></a>
-					<h1><strong>Ken Suong</strong><br />
-					<strong>Software Engineer</strong><br /> 
-					Living in Toronto, Ontario.<br />
-					</h1>
-				</div>
-			</header>
+    html, body { height: 100%; }
 
-		<!-- Main -->
-			<div id="main">
+    body {
+      display: grid;
+      place-items: center;
+      padding: 24px 16px;
+      background:
+        radial-gradient(1200px 600px at 85% -10%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 60%),
+        var(--bg);
+      color: var(--ink);
+      font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
 
-				<!-- One -->
-					<section id="one">
-						<header class="major">
-							<h2>Short Bio</h2>
-						</header>
-						<p>Previously worked at Meta Reality Labs Reseach, Evercast, and RBC Capital Markets.</p> 
-						<header class="major">
-							<h2>Long Bio</h2>
-						</header>
-						<h3>Meta Reality Labs Research</h3>
-						<p>Performed research on Contextual AI experiments using propritery wearables devices.</p>  
-						<h3>Evercast</h3>
-						<p>Worked on backend infrastructure and improving security posture for the company.</p>  
-						<h3>RBC Capital Markets</h3>
-						<p>App development inside the Fixed Income, Commodities and Currency space.</p>  
-						<header class="major">
-							<h2>What I say about myself at parties</h2>
-						</header>
-						<p> 
-						When I'm not in front of my computer, I'm rock climbing, golfing, or digesting an unhealthy amount of baseball news and stats trivia &#9918;.<br/> 
-						</p>
+    main {
+      width: 100%;
+      max-width: 460px;
+      text-align: center;
+      animation: rise 700ms cubic-bezier(.2,.7,.2,1) both;
+    }
 
-					</section>
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--card);
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--accent);
+      animation: pulse 1.6s ease-in-out infinite;
+    }
 
+    h1 {
+      margin-top: 28px;
+      font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
+      font-weight: 400;
+      font-size: clamp(40px, 9vw, 56px);
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+    }
 
+    p.lede {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 17px;
+      line-height: 1.55;
+    }
 
-				<!-- Two -->
-					<section id="two">
-						<h2>Personal Projects</h2>
-						<div class="row">
-							<article class="col-6 col-12-xsmall work-item">
-								<a href="https://devpost.com/software/structurall" class="image fit thumb"><img src="images/structurall.jpg" alt="" /></a>
-								<h3>Structurall</h3>
-								<p>Using Artifical Intelligence to bring structure to unstructured data (ReactJS, NodeJS, Azure).</p>
-							</article>
-							<article class="col-6 col-12-xsmall work-item">
-								<a href="https://devpost.com/software/alphanote" class="image fit thumb"><img src="images/alphanote.jpg" alt="" /></a>
-								<h3>AlphaNote</h3>
-								<p>Making notetaking easier for students using Wolfram Alpha (Javascript, HTML, CSS).</p>
-							</article>
-							<article class="col-6 col-12-xsmall work-item">
-								<a href="https://devpost.com/software/particle-plant" class="image fit thumb"><img src="images/particle-plant.jpg" alt="" /></a>
-								<h3>Particle Plant</h3>
-								<p>Using Longrange IoT hardware easier for people to keep track of their crops (Java).</p>
-							</article>
-							<article class="col-6 col-12-xsmall work-item">
-								<a href="https://devpost.com/software/readar-pkqi1l" class="image fit thumb"><img src="images/readar.jpg" alt="" /></a>
-								<h3>ReadAR</h3>
-								<p>Making Reading fun for children (JavaScript, HTML, CSS).</p>
-							</article>
-						</div>
-					</section>
-		<!-- Footer -->
-			<footer id="footer">
-				<div class="inner">
-					<ul class="icons">
-						<li><a href="https://twitter.com/kensuong" class="icon brands fa-twitter"><span class="label">Twitter</span></a></li>
-						<li><a href="https://github.com/suoken/" class="icon brands fa-github"><span class="label">Github</span></a></li>
-						<li><a href="mailto:kensuong@gmail.com" class="icon solid fa-envelope"><span class="label">Email</span></a></li>
-						<li><a href="https://drive.google.com/open?id=1up1NR6AW8cktCvQakqp_2T6rddR5xc76" class="icon solid fa-file"><span class="label">Resume</span></a></li>
-					</ul>
-				</div>
-			</footer>
+    .go {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 32px;
+      padding: 14px 22px;
+      border-radius: 12px;
+      background: var(--ink);
+      color: var(--bg);
+      font-size: 16px;
+      font-weight: 500;
+      text-decoration: none;
+      transition: transform .15s ease, box-shadow .15s ease;
+      box-shadow: 0 1px 0 rgba(0,0,0,.04), 0 8px 24px -12px rgba(0,0,0,.35);
+    }
+    .go:hover { transform: translateY(-1px); }
+    .go:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+    .go svg { transition: transform .15s ease; }
+    .go:hover svg { transform: translateX(3px); }
 
-		<!-- Scripts -->
-			<script src="assets/js/jquery.min.js"></script>
-			<script src="assets/js/jquery. 	.min.js"></script>
-			<script src="assets/js/browser.min.js"></script>
-			<script src="assets/js/breakpoints.min.js"></script>
-			<script src="assets/js/util.js"></script>
-			<script src="assets/js/main.js"></script>
+    .progress {
+      margin: 36px auto 0;
+      width: 140px;
+      height: 2px;
+      border-radius: 2px;
+      background: var(--line);
+      overflow: hidden;
+    }
+    .progress span {
+      display: block;
+      height: 100%;
+      width: 100%;
+      background: var(--accent);
+      transform-origin: left;
+      animation: fill 3s linear both;
+    }
 
-	</body>
+    .note {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    @keyframes fill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+
+    @media (prefers-reduced-motion: reduce) {
+      main, .dot, .progress span { animation: none; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <span class="eyebrow"><span class="dot"></span>This site has moved</span>
+
+    <h1>Ken Suong</h1>
+    <p class="lede">My site has a new home. You'll be taken there in a moment.</p>
+
+    <a class="go" href="https://kensuong.com/">
+      kensuong.com
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </a>
+
+    <div class="progress" aria-hidden="true"><span></span></div>
+    <p class="note">Redirecting in <span id="count">3</span>s</p>
+  </main>
+
+  <script>
+    (function () {
+      var target = "https://kensuong.com/";
+      var n = 3, el = document.getElementById("count");
+      var t = setInterval(function () {
+        n -= 1;
+        if (el) el.textContent = Math.max(n, 0);
+        if (n <= 0) { clearInterval(t); location.replace(target); }
+      }, 1000);
+    })();
+  </script>
+</body>
 </html>
