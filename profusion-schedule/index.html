@@ -107,7 +107,7 @@ footer a{color:var(--accent)}
     <div class="nextpick" id="nextpick" hidden></div>
   </header>
   <main id="list"></main>
-  <footer>Schedule from <a href="https://profusionexpo.com/schedule/" target="_blank" rel="noopener">profusionexpo.com/schedule</a>. Descriptions are short summaries; the expo site has the full details. Times can change; the printed schedule at the show is final. Your picks are saved in this browser.</footer>
+  <footer>Schedule from <a href="https://profusionexpo.com/schedule/" target="_blank" rel="noopener">profusionexpo.com/schedule</a>. Descriptions are short summaries; tap a session for a link to its full description. Times can change; the printed schedule at the show is final. Your picks are saved in this browser.</footer>
 </div>
 
 <script>
@@ -236,6 +236,10 @@ function state(){
   return {n,live};
 }
 
+function srcLink(x){
+  const frag=x.title.replace(/^[“"]/,"").split(/[:–(]/)[0].trim().split(/\s+/).slice(0,4).join(" ").replace(/[.,”"’]+$/,"");
+  return "https://profusionexpo.com/schedule/#:~:text="+encodeURIComponent(frag).replace(/-/g,"%2D");
+}
 function card(x,nowMin,isLive){
   const picked=picks.has(x.id), isOpen=open===x.id;
   const left=isLive&&x.s<=nowMin? `${x.e-nowMin} min left` : isLive&&x.s-nowMin<=60 ? `in ${x.s-nowMin} min` : "";
@@ -253,7 +257,7 @@ function card(x,nowMin,isLive){
     </div>
     ${isOpen?`<div class="action">
       ${picked?`<button class="pickbtn undo" data-pick="${x.id}">Remove from my picks</button>`:`<button class="pickbtn" data-pick="${x.id}">Interested?  Add to my picks</button>`}
-      ${x.loc==="Photo Walk"?'<a href="https://profusionexpo.com/schedule/" target="_blank" rel="noopener">Register on the expo site</a>':""}
+      <a href="${srcLink(x)}" target="_blank" rel="noopener">${x.loc==="Photo Walk"?"Full description &amp; registration":"Full description"} on profusionexpo.com ↗</a>
     </div>`:""}
   </div>`;
 }
