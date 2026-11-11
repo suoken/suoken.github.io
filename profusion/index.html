@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;font:14px/1.45 system-ui,-apple-system,sans-serif}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
+<title>ProFusion Live Schedule</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: sticky clock header, then a single column of time blocks: "On now" first, upcoming hours after. */
+:root{
+  --bg:#f3f4f6; --surface:#ffffff; --fg:#14161b; --muted:#666c78; --line:#dde0e6;
+  --accent:#2b49c9; --rec:#d6312b;
+  --pick:#1d8a4a; --pick-bg:#e2f4e8; --pick-line:#9fd6b3;
+  --display:"Archivo",system-ui,sans-serif; --body:"Inter",system-ui,sans-serif; --mono:"JetBrains Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#101217; --surface:#191c23; --fg:#eceef2; --muted:#959ba7; --line:#2a2e38;
+  --accent:#8fa6ff; --rec:#ff5a52; --pick:#4fca83; --pick-bg:#13291c; --pick-line:#2c6a44; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#101217; --surface:#191c23; --fg:#eceef2; --muted:#959ba7; --line:#2a2e38;
+  --accent:#8fa6ff; --rec:#ff5a52; --pick:#4fca83; --pick-bg:#13291c; --pick-line:#2c6a44; color-scheme:dark}
+
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.45}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:720px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px}
+
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:14px 10px;border-bottom:1px solid var(--line);display:grid;gap:10px}
+.top{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+h1{font-family:var(--display);font-weight:800;font-size:22px;letter-spacing:-.01em;margin:0;line-height:1.1}
+.sub{color:var(--muted);font-size:12.5px;letter-spacing:.02em}
+.clock{font-family:var(--mono);font-weight:700;font-size:22px;font-variant-numeric:tabular-nums;text-align:right;line-height:1}
+.clock small{display:block;font-size:10.5px;color:var(--muted);font-weight:500;letter-spacing:.08em;margin-top:4px}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:2px;background:var(--surface)}
+.seg button{border:0;background:none;color:var(--muted);font:600 13px var(--body);padding:6px 12px;border-radius:999px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--fg);color:var(--bg)}
+.seg button:focus-visible,.card:focus-visible,.pickbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.count{font-family:var(--mono);font-size:11px;opacity:.75;margin-left:4px}
+
+.nextpick{font-size:13px;padding:9px 12px;border-radius:10px;background:var(--pick-bg);border:1px solid var(--pick-line);color:var(--fg)}
+.nextpick b{color:var(--pick)}
+
+main{display:grid;gap:22px;margin-top:16px}
+.block{display:grid;gap:8px}
+.blockhead{display:flex;align-items:baseline;gap:10px;position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--hh,120px));background:var(--bg);padding-block:6px;z-index:2}
+.blockhead h2{font-family:var(--display);font-weight:700;font-size:15px;margin:0;letter-spacing:.06em;text-transform:uppercase}
+.blockhead .meta{color:var(--muted);font-size:12px;font-family:var(--mono)}
+.rec{display:inline-flex;align-items:center;gap:6px;color:var(--rec)}
+.rec::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--rec);animation:blink 1.6s infinite}
+@keyframes blink{50%{opacity:.25}}
+@media (prefers-reduced-motion:reduce){.rec::before{animation:none}}
+
+.card{display:grid;grid-template-columns:64px 1fr;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer;text-align:left;transition:border-color .15s,background .15s}
+.card:hover{border-color:var(--muted)}
+.card.picked{background:var(--pick-bg);border-color:var(--pick-line)}
+.time{font-family:var(--mono);font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.3}
+.time span{display:block;color:var(--muted);font-weight:500;font-size:11.5px}
+.info{min-width:0;display:grid;gap:4px}
+.title{font-weight:600;font-size:15px;line-height:1.3;text-wrap:pretty}
+.who{color:var(--muted);font-size:13px}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
+.tag{font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:999px;border:1px solid var(--line);color:var(--fg)}
+.tag.stage{border-color:var(--accent);color:var(--accent)}
+.tag.ok{background:var(--pick);border-color:var(--pick);color:var(--surface)}
+.tag.left{font-family:var(--mono);font-weight:500;color:var(--muted)}
+.action{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding-top:10px;border-top:1px dashed var(--line)}
+.pickbtn{font:600 14px var(--body);padding:9px 16px;border-radius:10px;border:1px solid var(--pick);background:var(--pick);color:var(--surface);cursor:pointer}
+.pickbtn.undo{background:transparent;color:var(--pick)}
+.action a{font-size:13px;color:var(--accent)}
+
+.empty{background:var(--surface);border:1px dashed var(--line);border-radius:12px;padding:20px;color:var(--muted);text-align:center}
+footer{margin-top:28px;color:var(--muted);font-size:12px}
+footer a{color:var(--accent)}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header id="hdr">
+    <div class="top">
+      <div>
+        <h1>ProFusion Expo</h1>
+        <div class="sub" id="sub">Toronto · Nov 11–12, 2026</div>
+      </div>
+      <div class="clock" id="clock">--:--<small>TORONTO TIME</small></div>
+    </div>
+    <div class="controls">
+      <div class="seg" role="group" aria-label="Day">
+        <button id="d1" data-day="1">Wed 11</button>
+        <button id="d2" data-day="2">Thu 12</button>
+      </div>
+      <div class="seg" role="group" aria-label="Filter">
+        <button id="fAll" data-f="all">All</button>
+        <button id="fPick" data-f="pick">My picks<span class="count" id="pc"></span></button>
+      </div>
+    </div>
+    <div class="nextpick" id="nextpick" hidden></div>
+  </header>
+  <main id="list"></main>
+  <footer>Schedule from <a href="https://profusionexpo.com/schedule/" target="_blank" rel="noopener">profusionexpo.com/schedule</a>. Times can change; the printed schedule at the show is final. Your picks are saved in this browser.</footer>
+</div>
+
+<script>
+// [start, end, title, presenter, brand, location]
+const D1=[
+["11:30","12:15","Photographing Where You Live: Getting Creative in Your Own Backyard","André Costantini","Tamron","Stage B"],
+["11:30","12:15","Creating in the Wild: Gear, Workflow & Adventure Content Creation","Danielle Lister","Canon","Canon Booth"],
+["11:30","12:15","From Fear To Flash","JC Carey","Westcott","Stage C"],
+["11:30","12:30","Shooting the Leafs and Raptors","Mark Blinch","Sony","Sony Booth"],
+["11:30","12:15","Good Glass: The Other Half of the Equation","Chris Hau","Zeiss","Stage A"],
+["12:00","12:45","Three Lenses. Endless Possibilities. Mastering Nikon’s 14–24, 24–70 & 70–200 Trinity","Kristian Bogner","Nikon","Nikon Booth"],
+["12:00","13:00","Sony Alpha Portrait Lab","Raph Nogal","Sony & Profoto","Sony Portrait Lab"],
+["12:00","13:15","PROVIA Photo Walk (registration required)","Ana Markovych","Fujifilm","Photo Walk"],
+["12:30","13:15","African Safari: Gear, Technique and Getting the Shot","Simon d'Entremont","Canon","Canon Booth"],
+["12:30","13:15","The Zarafication of E-Commerce: When Product Photography Became Editorial","Ara Coutts","Godox","Stage C"],
+["12:30","13:15","The Distance Disappeared – Through Sports Photography","Hanin Mazri","Canon","Stage B"],
+["12:30","13:15","My Photographic Journey of Art, Life, and Legacy","CJ Creating","Sony","Stage A"],
+["13:00","13:30","The Art of Cinematic Filmmaking with the Lumix S1II Series","Remi","Panasonic","Panasonic Booth"],
+["13:00","14:00","From Chasing Wildlife to Capturing Stories: A Wildlife Photographer’s Journey","Mike McGugan","Sony","Sony Booth"],
+["13:00","13:45","Bird Photography From Start to Finish","Travis Layton","Nikon","Nikon Booth"],
+["13:00","14:00","Discover Profoto’s Continuous Lighting Tools for Filmmakers","Raymond Tuquero","Profoto","Profoto Booth"],
+["13:15","14:00","Editorial Beauty: Lighting Jewellery for the New E-Commerce Standard","Ara Coutts","Godox","Godox Booth"],
+["13:30","14:15","Three Lenses. Endless Possibilities. Mastering Nikon’s 14–24, 24–70 & 70–200 Trinity","Kristian Bogner","Nikon","Stage A"],
+["13:30","14:15","Fly the Camera","Antonio de la Cruz","DJI","Stage B"],
+["13:30","14:15","The Journey of an Image: From Capture to Print","Peter Dulis","Hahnemühle","Stage C"],
+["13:30","14:15","The Next Step – From Hybrid Shooter to Commercial Production","Tenfold Production","Canon","Canon Booth"],
+["14:00","14:45","Chasing Fleeting Moments: The Art of Being Ready","Michele Thompson","Nikon","Nikon Booth"],
+["14:00","14:30","Lumix For Cinema","Sifan Ren","Panasonic","Panasonic Booth"],
+["14:00","15:00","“A little goes a long way.”","Isaac Tang","Sony","Sony Booth"],
+["14:00","15:15","MONOCHROME Photo Walk (registration required)","Mustafa Hacalaki","Fujifilm","Photo Walk"],
+["14:30","15:15","Breaking Into Automotive Content & Shooting Cars Like a Pro","Jon Simo","Panasonic","Stage B"],
+["14:30","15:15","The Three-Light Playbook","Dale Sood","Vistek","Stage C"],
+["14:30","15:15","Food Photography: The Recipe to Success","Ashley van der Laan","Fujifilm","Stage A"],
+["15:00","15:45","Creating in the Wild: Gear, Workflow & Adventure Content Creation","Danielle Lister","Canon","Canon Booth"],
+["15:00","15:45","The Perfect Selfie in 7 Steps","Veronique Duplain","Nikon","Nikon Booth"],
+["15:00","16:00","No Limits: Freezing Action with Global Shutter","Vitor Munhoz","Profoto","Profoto Booth"],
+["15:00","16:00","Stop Feeling Pressured to “Find Your Niche”: The Advantages of Variety as a Creative Freelancer","Ashlyn Daisy","Sony","Sony Booth"],
+["15:30","16:00","The Panasonic Ecosystem","Ben Assouly","Panasonic","Panasonic Booth"],
+["15:30","16:15","Beyond the Settings: The Art of a Great Wildlife Photograph","Simon d'Entremont","Canon","Stage A"],
+["15:30","16:15","Into the Wild – Wildlife Photography for the Non-wildlife Photographer","Peter Baumgarten","OM System","Stage B"],
+["15:30","16:15","Tiny Worlds, Big Impact: Breathtaking Macro Images with Light, Lenses & Tethering","Will Prentice","Elinchrom / Laowa / Tether Tools","Stage C"],
+["16:00","17:00","Sony Alpha Portrait Lab","Raph Nogal","Sony & Profoto","Sony Portrait Lab"],
+["16:00","16:45","The Distance Disappeared – Through Photography","Hanin Mazri","Canon","Canon Booth"],
+["16:00","17:15","PRO Neg. Hi Photo Walk (registration required)","Taha Chanouha","Fujifilm","Photo Walk"],
+["16:30","17:15","Practical Tips for Getting Started with DJI Ronin Gimbals","Brett Halladay","DJI & Hasselblad","Stage C"],
+["16:30","17:15","Bird Photography From Start to Finish","Travis Layton","Nikon","Stage A"],
+["16:30","17:15","The Industry’s Most Advanced Lighting System: The Storm CS32 with BLAIR-CG","Tony Nall","Aputure","Stage B"],
+["17:00","17:45","Three Lenses. Endless Possibilities. Mastering Nikon’s 14–24, 24–70 & 70–200 Trinity","Kristian Bogner","Nikon","Nikon Booth"],
+["17:00","17:45","The Next Step – From Hybrid Shooter to Commercial Production","Tenfold Production","Canon","Canon Booth"],
+["17:30","18:15","CSC Presents: The Art & Career of Cinematography (Panel)","Zoe Dirse","Canadian Society of Cinematographers","Stage A"],
+["17:30","18:15","Built for the Big Moments","Vitor Munhoz","Profoto","Stage C"],
+["18:00","18:45","The Perfect Selfie in 7 Steps","Veronique Duplain","Nikon","Nikon Booth"]
+];
+const D2=[
+["10:30","11:30","Closer Than You Think: Landscapes, Night Skies & Finding Beauty Close to Home","Trevor Pottelberg","Sony","Sony Booth"],
+["10:30","11:15","The Uncopyable Eye: Lighting, Direction, and the Creative Practice","Nick Merzetti","Vistek","Stage A"],
+["10:30","11:15","Three Lenses. Endless Possibilities. Mastering Nikon’s 14–24, 24–70 & 70–200 Trinity","Kristian Bogner","Nikon","Nikon Booth"],
+["10:30","11:15","Into the Wild – Wildlife Photography for the Non-wildlife Photographer","Peter Baumgarten","OM System","Stage B"],
+["10:30","11:30","Creative Portraiture: Light in Motion","Raph Nogal","Sony & Profoto","Profoto Booth"],
+["10:30","11:15","Seeing the Unseen – Magical Realism in Photography","Nika Belianina","Photographers Without Borders","Stage C"],
+["11:00","12:00","How to FREEZE Motion in Studio (Live Multi-Strobe Setup)","Yvens Banatte","Godox","Godox Booth"],
+["11:00","11:45","The Distance Disappeared – Through Photography","Hanin Mazri","Canon","Canon Booth"],
+["11:00","12:15","PROVIA Photo Walk (registration required)","Ana Markovych","Fujifilm","Photo Walk"],
+["11:30","12:15","Bird Photography From Start to Finish","Travis Layton","Nikon","Nikon Booth"],
+["11:30","12:15","The Industry’s Most Advanced Lighting System: The Storm CS32 with BLAIR-CG","Tony Nall","Aputure","Stage A"],
+["11:30","12:15","Travel Photography and Visual Storytelling","Erica Robinson","Tamron","Stage B"],
+["11:30","12:15","The Three-Light Playbook","Dale Sood","Vistek","Stage C"],
+["12:00","12:45","Creating in the Wild: Gear, Workflow & Adventure Content Creation","Danielle Lister","Canon","Canon Booth"],
+["12:00","13:00","In the Moment: My Photographic Journey of Art, Life, and Legacy","CJ Creating","Sony","Sony Booth"],
+["12:30","13:30","No Limits: Freezing Action with Global Shutter","Vitor Munhoz","Profoto","Profoto Booth"],
+["12:30","13:15","Tiny Worlds, Big Impact: Breathtaking Macro Images with Light, Lenses & Tethering","Will Prentice","Elinchrom / Laowa / Tether Tools","Stage C"],
+["12:30","13:15","Three Lenses. Endless Possibilities. Mastering Nikon’s 14–24, 24–70 & 70–200 Trinity","Kristian Bogner","Nikon","Stage A"],
+["12:30","13:15","Finding Extraordinary Wildlife Close to Home","Trevor Pottelberg","Sony","Stage B"],
+["13:00","13:45","The Distance Disappeared – Through Photography","Hanin Mazri","Canon","Canon Booth"],
+["13:00","13:30","Lumix For Cinema","Sifan Ren","Panasonic","Panasonic Booth"],
+["13:00","14:00","“Photos That Challenged Me and How I Shot Them”","Frank Gunn","Sony","Sony Booth"],
+["13:00","14:15","MONOCHROME Photo Walk (registration required)","Mustafa Hacalaki","Fujifilm","Photo Walk"],
+["13:00","13:45","The Perfect Selfie in 7 Steps","Veronique Duplain","Nikon","Nikon Booth"],
+["13:30","14:15","How to FREEZE Motion in Studio (Live Multi-Strobe Setup)","Yvens Banatte","Godox","Stage C"],
+["13:30","14:15","From Farm to Fork: Photographing the People Behind the Plate","Jonathan Bielaski","Fujifilm","Stage A"],
+["13:30","14:15","Beyond the Settings: The Art of a Great Wildlife Photograph","Simon d'Entremont","Canon","Stage B"],
+["14:00","14:45","The Next Step – From Hybrid Shooter to Commercial Production","Tenfold Production","Canon","Canon Booth"],
+["14:00","14:30","How Jon Simo Shoots Cars with Lumix","Jon Simo","Panasonic","Panasonic Booth"],
+["14:00","14:45","Chasing Fleeting Moments: The Art of Being Ready","Michele Thompson","Nikon","Nikon Booth"],
+["14:00","15:00","“A little goes a long way.”","Isaac Tang","Sony","Sony Booth"],
+["14:30","15:30","Discover Profoto’s Continuous Lighting Tools for Filmmakers","Raymond Tuquero","Profoto","Profoto Booth"],
+["14:30","15:15","Behind the Lens: Documentary Filmmaking with Sony Cinema Line","Mark Bone & Gerald Undone","Sony","Stage A"],
+["14:30","15:15","From Ground to Sky: Reimagining the World in 360°","Michael Shabun","Antigravity","Stage B"],
+["14:30","15:15","The Journey of an Image: From Capture to Print","Peter Dulis","Hahnemühle","Stage C"],
+["15:00","15:45","African Safari: Gear, Technique and Getting the Shot","Simon d'Entremont","Canon","Canon Booth"],
+["15:00","16:00","Is the FX5 Right for You?","Nicole Shapiro","Sony","Sony Booth"],
+["15:00","16:15","PRO Neg. Hi Photo Walk (registration required)","Taha Chanouha","Fujifilm","Photo Walk"],
+["15:30","16:15","Built for the Field: The LUMIX S1 Series in Action","Ben Assouly","Panasonic","Stage B"],
+["15:30","16:15","Beyond the Screen: Turning Photographs into Timeless Artwork","Jeff Vogan","Pictorem","Stage A"],
+["15:30","16:00","The Art of Cinematic Filmmaking with the Lumix S1II Series","Remi","Panasonic","Panasonic Booth"],
+["15:30","16:15","Practical Tips for Getting Started with DJI Ronin Gimbals","Brett Halladay","DJI & Hasselblad","Stage C"],
+["16:00","17:00","In the Moment: My Photographic Journey of Art, Life, and Legacy","CJ Creating","Sony","Sony Booth"]
+];
+const DATES={1:"2026-11-11",2:"2026-11-12"};
+const toMin=t=>{const[h,m]=t.split(":").map(Number);return h*60+m};
+const SESS={1:[],2:[]};
+[[1,D1],[2,D2]].forEach(([d,arr])=>arr.forEach((r,i)=>SESS[d].push({id:`d${d}-${i}-${r[0]}-${r[3].split(" ")[0]}`,day:d,s:toMin(r[0]),e:toMin(r[1]),title:r[2],who:r[3],brand:r[4],loc:r[5]})));
+
+const KEY="profusion-picks-2026";
+let picks=new Set();
+try{picks=new Set(JSON.parse(localStorage.getItem(KEY)||"[]"))}catch(e){}
+const savePicks=()=>{try{localStorage.setItem(KEY,JSON.stringify([...picks]))}catch(e){}};
+
+let filter="all", day=null, open=null;
+
+function torontoNow(){
+  const p=Object.fromEntries(new Intl.DateTimeFormat("en-CA",{timeZone:"America/Toronto",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hourCycle:"h23"}).formatToParts(new Date()).map(x=>[x.type,x.value]));
+  return {date:`${p.year}-${p.month}-${p.day}`,min:+p.hour*60+ +p.minute,sec:+p.second};
+}
+const fmt=m=>{let h=Math.floor(m/60),mm=m%60,ap=h>=12?"PM":"AM";h=h%12||12;return `${h}:${String(mm).padStart(2,"0")}`+` ${ap}`};
+const fmtShort=m=>{let h=Math.floor(m/60),mm=m%60;h=h%12||12;return `${h}:${String(mm).padStart(2,"0")}`};
+const hourLabel=h=>`${h%12||12} ${h>=12?"PM":"AM"}`;
+const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function state(){
+  const n=torontoNow();
+  // which day is "today" for the expo: -1 before, 1/2 during, 3 after
+  let live=0;
+  if(n.date===DATES[1])live=1;else if(n.date===DATES[2])live=2;else if(n.date<DATES[1])live=-1;else live=3;
+  return {n,live};
+}
+
+function card(x,nowMin,isLive){
+  const picked=picks.has(x.id), isOpen=open===x.id;
+  const left=isLive&&x.s<=nowMin? `${x.e-nowMin} min left` : isLive&&x.s-nowMin<=60 ? `in ${x.s-nowMin} min` : "";
+  return `<div class="card${picked?" picked":""}" role="button" tabindex="0" aria-expanded="${isOpen}" data-id="${x.id}">
+    <div class="time">${fmtShort(x.s)}<span>– ${fmtShort(x.e)}</span></div>
+    <div class="info">
+      <div class="title">${esc(x.title)}</div>
+      <div class="who">${esc(x.who)} · ${esc(x.brand)}</div>
+      <div class="tags">
+        <span class="tag${x.loc.startsWith("Stage")?" stage":""}">${esc(x.loc)}</span>
+        ${picked?'<span class="tag ok">Interested</span>':""}
+        ${left?`<span class="tag left">${left}</span>`:""}
+      </div>
+    </div>
+    ${isOpen?`<div class="action">
+      ${picked?`<button class="pickbtn undo" data-pick="${x.id}">Remove from my picks</button>`:`<button class="pickbtn" data-pick="${x.id}">Interested?  Add to my picks</button>`}
+      ${x.loc==="Photo Walk"?'<a href="https://profusionexpo.com/schedule/" target="_blank" rel="noopener">Register on the expo site</a>':""}
+    </div>`:""}
+  </div>`;
+}
+
+function render(){
+  const {n,live}=state();
+  if(day===null) day = live===2||live===3 ? 2 : 1;
+  const isLive = live===day;
+  const nowMin = n.min;
+
+  // clock + subtitle
+  const h=Math.floor(nowMin/60);
+  document.getElementById("clock").innerHTML=`${fmt(nowMin)}<small>TORONTO TIME</small>`;
+  document.getElementById("sub").textContent =
+    live===-1?"Toronto · starts Wed Nov 11":
+    live===3?"Toronto · the expo has ended":
+    `Toronto · Day ${live} is on now`;
+
+  document.querySelectorAll("[data-day]").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.day===day));
+  document.querySelectorAll("[data-f]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.f===filter));
+  document.getElementById("pc").textContent=picks.size?picks.size:"";
+
+  let items=SESS[day];
+  if(filter==="pick") items=items.filter(x=>picks.has(x.id));
+  let hidden=0;
+  if(isLive){ const before=items.length; items=items.filter(x=>x.e>nowMin); hidden=before-items.length; }
+  else if(live===3 || (live===2&&day===1)){ items=[]; }
+
+  // group
+  const groups=[];
+  if(isLive){
+    const onNow=items.filter(x=>x.s<=nowMin);
+    if(onNow.length) groups.push({label:'<span class="rec">On now</span>',meta:`${onNow.length} session${onNow.length>1?"s":""}`,items:onNow});
+    items=items.filter(x=>x.s>nowMin);
+  }
+  const byHour={};
+  items.forEach(x=>{const k=Math.floor(x.s/60);(byHour[k]=byHour[k]||[]).push(x)});
+  Object.keys(byHour).map(Number).sort((a,b)=>a-b).forEach(k=>groups.push({label:hourLabel(k),meta:`${byHour[k].length} session${byHour[k].length>1?"s":""}`,items:byHour[k]}));
+
+  const list=document.getElementById("list");
+  if(!groups.length){
+    let msg = filter==="pick" ? "No picks left for this day. Tap any session and choose “Interested?” to add it." :
+      (live===3||(live===2&&day===1)) ? "This day’s sessions are over." : "Nothing left on today’s schedule.";
+    list.innerHTML=`<div class="empty">${msg}</div>`;
+  } else {
+    list.innerHTML=groups.map(g=>`<section class="block"><div class="blockhead"><h2>${g.label}</h2><span class="meta">${g.meta}</span></div>${g.items.map(x=>card(x,nowMin,isLive)).join("")}</section>`).join("");
+  }
+
+  // next pick banner
+  const np=document.getElementById("nextpick");
+  const todays = live===1||live===2 ? SESS[live].filter(x=>picks.has(x.id)&&x.e>nowMin).sort((a,b)=>a.s-b.s) : [];
+  if(todays.length){
+    const x=todays[0];
+    const when = x.s<=nowMin ? `<b>on now</b> (${x.e-nowMin} min left)` : `<b>${x.s-nowMin<=90?`in ${x.s-nowMin} min`:`at ${fmt(x.s)}`}</b>`;
+    np.innerHTML=`Your next pick: ${esc(x.title)} · ${esc(x.loc)}, ${when}`;
+    np.hidden=false;
+  } else np.hidden=true;
+
+  document.documentElement.style.setProperty("--hh",document.getElementById("hdr").offsetHeight+"px");
+}
+
+document.addEventListener("click",e=>{
+  const pb=e.target.closest("[data-pick]");
+  if(pb){ const id=pb.dataset.pick; picks.has(id)?picks.delete(id):picks.add(id); savePicks(); render(); return; }
+  const d=e.target.closest("[data-day]"); if(d){day=+d.dataset.day;open=null;render();return;}
+  const f=e.target.closest("[data-f]"); if(f){filter=f.dataset.f;render();return;}
+  if(e.target.closest("a"))return;
+  const c=e.target.closest(".card"); if(c){open=open===c.dataset.id?null:c.dataset.id;render();}
+});
+document.addEventListener("keydown",e=>{
+  if((e.key==="Enter"||e.key===" ")&&e.target.classList?.contains("card")){e.preventDefault();e.target.click();}
+});
+window.addEventListener("resize",()=>document.documentElement.style.setProperty("--hh",document.getElementById("hdr").offsetHeight+"px"));
+render();
+setInterval(render,20000);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)render()});
+</script>
+</body>
+</html>
