@@ -47,6 +47,11 @@ h1{font-family:var(--display);font-weight:800;font-size:22px;letter-spacing:-.01
 
 .nextpick{font-size:13px;padding:9px 12px;border-radius:10px;background:var(--pick-bg);border:1px solid var(--pick-line);color:var(--fg)}
 .nextpick b{color:var(--pick)}
+.nextpick{display:flex;align-items:flex-start;gap:10px}
+.nextpick .np-text{flex:1;min-width:0}
+.np-close{flex:none;border:0;background:none;color:var(--muted);font:600 18px/1 var(--body);width:28px;height:28px;margin:-4px -6px -4px 0;border-radius:8px;cursor:pointer}
+.np-close:hover{color:var(--fg);background:var(--line)}
+.np-close:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 
 main{display:grid;gap:22px;margin-top:16px}
 .block{display:grid;gap:8px}
@@ -216,6 +221,10 @@ const KEY="profusion-picks-2026";
 let picks=new Set();
 try{picks=new Set(JSON.parse(localStorage.getItem(KEY)||"[]"))}catch(e){}
 const savePicks=()=>{try{localStorage.setItem(KEY,JSON.stringify([...picks]))}catch(e){}};
+const DKEY="profusion-dismissed-2026";
+let dismissed=new Set();
+try{dismissed=new Set(JSON.parse(localStorage.getItem(DKEY)||"[]"))}catch(e){}
+const saveDismissed=()=>{try{localStorage.setItem(DKEY,JSON.stringify([...dismissed]))}catch(e){}};
 
 let filter="all", day=null, open=null;
 
@@ -309,10 +318,10 @@ function render(){
   // next pick banner
   const np=document.getElementById("nextpick");
   const todays = live===1||live===2 ? SESS[live].filter(x=>picks.has(x.id)&&x.e>nowMin).sort((a,b)=>a.s-b.s) : [];
-  if(todays.length){
+  if(todays.length && !dismissed.has(todays[0].id)){
     const x=todays[0];
     const when = x.s<=nowMin ? `<b>on now</b> (${x.e-nowMin} min left)` : `<b>${x.s-nowMin<=90?`in ${x.s-nowMin} min`:`at ${fmt(x.s)}`}</b>`;
-    np.innerHTML=`Your next pick: ${esc(x.title)} · ${esc(x.loc)}, ${when}`;
+    np.innerHTML=`<div class="np-text">Your next pick: ${esc(x.title)} · ${esc(x.loc)}, ${when}</div><button class="np-close" data-dismiss="${x.id}" aria-label="Clear this reminder">×</button>`;
     np.hidden=false;
   } else np.hidden=true;
 
@@ -320,6 +329,8 @@ function render(){
 }
 
 document.addEventListener("click",e=>{
+  const dm=e.target.closest("[data-dismiss]");
+  if(dm){ dismissed.add(dm.dataset.dismiss); saveDismissed(); render(); return; }
   const pb=e.target.closest("[data-pick]");
   if(pb){ const id=pb.dataset.pick; picks.has(id)?picks.delete(id):picks.add(id); savePicks(); render(); return; }
   const d=e.target.closest("[data-day]"); if(d){day=+d.dataset.day;open=null;render();return;}
