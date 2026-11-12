@@ -101,6 +101,14 @@ main{display:grid;gap:22px;margin-top:16px}
 .storenote{font-size:12.5px;color:var(--muted);padding:8px 12px;border:1px dashed var(--line);border-radius:10px}
 @media (max-width:440px){.controls{gap:6px}.seg button{padding:0 10px}}
 @media (max-width:410px){.dnum{display:none}}
+.pastbtn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;border:1px dashed var(--line);background:transparent;color:var(--muted);font:600 13px var(--body);padding:10px 12px;border-radius:10px;cursor:pointer}
+.pastbtn:hover{color:var(--fg);border-color:var(--muted)}
+.pastbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.chev{transition:transform .2s}
+.chev.open{transform:rotate(180deg)}
+@media (prefers-reduced-motion:reduce){.chev{transition:none}}
+.card.past{opacity:.6}
+.card.past:hover,.card.past[aria-expanded="true"]{opacity:1}
 .empty{background:var(--surface);border:1px dashed var(--line);border-radius:12px;padding:20px;color:var(--muted);text-align:center}
 footer{margin-top:28px;color:var(--muted);font-size:12px}
 footer a{color:var(--accent)}
@@ -247,7 +255,7 @@ let dismissed=new Set();
 try{dismissed=new Set(JSON.parse(localStorage.getItem(DKEY)||"[]"))}catch(e){}
 const saveDismissed=()=>{try{localStorage.setItem(DKEY,JSON.stringify([...dismissed]))}catch(e){}};
 
-let filter="all", day=null, open=null;
+let filter="all", day=null, open=null, showPast=false;
 
 function torontoNow(){
   const p=Object.fromEntries(new Intl.DateTimeFormat("en-CA",{timeZone:"America/Toronto",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hourCycle:"h23"}).formatToParts(new Date()).map(x=>[x.type,x.value]));
@@ -270,10 +278,10 @@ function srcLink(x){
   const frag=x.title.replace(/^[“"]/,"").split(/[:–(]/)[0].trim().split(/\s+/).slice(0,4).join(" ").replace(/[.,”"’]+$/,"");
   return "https://profusionexpo.com/schedule/#:~:text="+encodeURIComponent(frag).replace(/-/g,"%2D");
 }
-function card(x,nowMin,isLive){
+function card(x,nowMin,isLive,isPast){
   const picked=picks.has(x.id), isOpen=open===x.id;
-  const left=isLive&&x.s<=nowMin? `${x.e-nowMin} min left` : isLive&&x.s-nowMin<=60 ? `in ${x.s-nowMin} min` : "";
-  return `<div class="card${picked?" picked":""}" role="button" tabindex="0" aria-expanded="${isOpen}" data-id="${x.id}">
+  const left=isPast? "Ended" : isLive&&x.s<=nowMin? `${x.e-nowMin} min left` : isLive&&x.s-nowMin<=60 ? `in ${x.s-nowMin} min` : "";
+  return `<div class="card${picked?" picked":""}${isPast?" past":""}" role="button" tabindex="0" aria-expanded="${isOpen}" data-id="${x.id}">
     <div class="time">${fmtShort(x.s)}<span>– ${fmtShort(x.e)}</span></div>
     <div class="info">
       <div class="title">${esc(x.title)}</div>
@@ -312,9 +320,11 @@ function render(){
 
   let items=SESS[day];
   if(filter==="pick") items=items.filter(x=>picks.has(x.id));
-  let hidden=0;
-  if(isLive){ const before=items.length; items=items.filter(x=>x.e>nowMin); hidden=before-items.length; }
-  else if(live===3 || (live===2&&day===1)){ items=[]; }
+  const dayOver = live===3 || (live===2&&day===1);
+  let past=[];
+  if(isLive){ past=items.filter(x=>x.e<=nowMin); items=items.filter(x=>x.e>nowMin); }
+  else if(dayOver){ past=items; items=[]; }
+  if(!past.length) showPast=false;
 
   // group
   const groups=[];
@@ -323,18 +333,20 @@ function render(){
     if(onNow.length) groups.push({label:'<span class="rec">On now</span>',meta:`${onNow.length} session${onNow.length>1?"s":""}`,items:onNow});
     items=items.filter(x=>x.s>nowMin);
   }
-  const byHour={};
-  items.forEach(x=>{const k=Math.floor(x.s/60);(byHour[k]=byHour[k]||[]).push(x)});
-  Object.keys(byHour).map(Number).sort((a,b)=>a-b).forEach(k=>groups.push({label:hourLabel(k),meta:`${byHour[k].length} session${byHour[k].length>1?"s":""}`,items:byHour[k]}));
+  const hourGroups=arr=>{const byHour={};arr.forEach(x=>{const k=Math.floor(x.s/60);(byHour[k]=byHour[k]||[]).push(x)});return Object.keys(byHour).map(Number).sort((a,b)=>a-b).map(k=>({label:hourLabel(k),meta:`${byHour[k].length} session${byHour[k].length>1?"s":""}`,items:byHour[k]}))};
+  groups.push(...hourGroups(items));
+  const groupsHtml=(gs,isPast)=>gs.map(g=>`<section class="block${isPast?" pastblock":""}"><div class="blockhead"><h2>${g.label}</h2><span class="meta">${g.meta}${isPast?" · ended":""}</span></div>${g.items.map(x=>card(x,nowMin,isLive,isPast)).join("")}</section>`).join("");
+  const pn=past.length, ps=pn>1?"s":"";
+  const pastHtml = pn ? `<button class="pastbtn" id="pastbtn" aria-expanded="${showPast}"><svg class="chev${showPast?" open":""}" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg>${showPast?`Hide earlier session${ps}`:`Show ${pn} earlier session${ps} you missed`}</button>` + (showPast?groupsHtml(hourGroups(past),true):"") : "";
 
   const list=document.getElementById("list");
   const storeNote = filter==="pick" ? `<div class="storenote">Picks are saved only in this browser on this device. They won’t show up in another browser, on another phone, or in a private tab, and clearing your browser data removes them.</div>` : "";
   if(!groups.length){
     let msg = filter==="pick" ? "No picks left for this day. Tap any session and choose “Interested?” to add it." :
       (live===3||(live===2&&day===1)) ? "This day’s sessions are over." : "Nothing left on today’s schedule.";
-    list.innerHTML=storeNote+`<div class="empty">${msg}</div>`;
+    list.innerHTML=storeNote+pastHtml+`<div class="empty">${msg}</div>`;
   } else {
-    list.innerHTML=storeNote+groups.map(g=>`<section class="block"><div class="blockhead"><h2>${g.label}</h2><span class="meta">${g.meta}</span></div>${g.items.map(x=>card(x,nowMin,isLive)).join("")}</section>`).join("");
+    list.innerHTML=storeNote+pastHtml+groupsHtml(groups,false);
   }
 
   // next pick banner
@@ -358,7 +370,8 @@ document.addEventListener("click",e=>{
   if(dm){ dismissed.add(dm.dataset.dismiss); saveDismissed(); render(); return; }
   const pb=e.target.closest("[data-pick]");
   if(pb){ const id=pb.dataset.pick; picks.has(id)?picks.delete(id):picks.add(id); savePicks(); render(); return; }
-  const d=e.target.closest("[data-day]"); if(d){day=+d.dataset.day;open=null;render();return;}
+  if(e.target.closest("#pastbtn")){showPast=!showPast;render();return;}
+  const d=e.target.closest("[data-day]"); if(d){day=+d.dataset.day;open=null;showPast=false;render();return;}
   const f=e.target.closest("[data-f]"); if(f){filter=f.dataset.f;render();return;}
   if(e.target.closest("a"))return;
   const c=e.target.closest(".card"); if(c){open=open===c.dataset.id?null:c.dataset.id;render();}
